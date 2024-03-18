@@ -7,6 +7,8 @@
 #include "proc.h"
 #include "spinlock.h"
 
+int child_bit;
+
 struct {
   struct spinlock lock;
   struct proc proc[NPROC];
@@ -216,7 +218,13 @@ fork(void)
 
   acquire(&ptable.lock);
   np->state = RUNNABLE;
+
   release(&ptable.lock);
+
+  if(child_bit == 1){
+    curproc->state = RUNNING;
+    yield();
+  }
 
   return pid;
 }
