@@ -8,6 +8,8 @@
 #include "spinlock.h"
 
 int child_bit;
+int sched_policy;
+
 //dsj
 struct {
   struct spinlock lock;
@@ -327,6 +329,8 @@ wait(void)
 //  - swtch to start running that process
 //  - eventually that process transfers control
 //      via swtch back to the scheduler.
+
+//Does this have to take an argument
 void
 scheduler(void)
 {
