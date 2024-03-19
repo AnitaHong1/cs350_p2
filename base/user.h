@@ -40,3 +40,4 @@ int atoi(const char*);
 void shutdown(void);
 void enable_sched_trace(int enable);
 void fork_winner(int winner);
+void set_sched(int scheduler);

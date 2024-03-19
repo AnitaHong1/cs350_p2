@@ -47,6 +47,13 @@ sys_fork_winner(void)
   return 0;
 }
 
+int sys_set_sched(void)
+{
+  if(argint(0, &sched_policy) <= -1) 
+    return -1;  
+  return 0;
+}
+
 int
 sys_getpid(void)
 {

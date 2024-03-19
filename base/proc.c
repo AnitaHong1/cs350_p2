@@ -334,7 +334,7 @@ wait(void)
 void
 scheduler(void)
 {
-  cprintf("sched policy is %d\n\n\n", sched_policy);
+  // cprintf("sched policy is %d\n\n\n", sched_policy);
   
   struct proc *p;
   struct cpu *c = mycpu();
