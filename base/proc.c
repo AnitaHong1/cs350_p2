@@ -227,10 +227,9 @@ fork(void)
     curproc->state = RUNNING;
     yield();
   }
-  curproc->ticket = 99;
-  np->ticket = 99;
-
   
+
+  redist();
   return pid;
 }
 
@@ -275,9 +274,12 @@ exit(void)
   }
 
   // Jump into the scheduler, never to return.
+
   curproc->state = ZOMBIE;
+  redist();
   sched();
   panic("zombie exit");
+  
 }
 
 // Wait for a child process to exit and return its pid.
@@ -581,18 +583,17 @@ getproctickets(int pid)
   int ticket = -1;
 
 
-  acquire(&ptable.lock);
+  // acquire(&ptable.lock);
   for(p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
     if(p->state == UNUSED)
       continue;
     if(p->pid == pid) {
-      cprintf("PID = %d", p->pid);
       ticket = p->ticket;
-      release(&ptable.lock);
+      // release(&ptable.lock);
       return ticket;
     }
   }
-  release(&ptable.lock);
+  // release(&ptable.lock);
   return -1;
 }
 
@@ -604,31 +605,35 @@ get_proc(int pid)
   int ticket = -1;
 
 
-  acquire(&ptable.lock);
+  // acquire(&ptable.lock);
   for(p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
     if(p->state == UNUSED)
       continue;
     if(p->pid == pid) {
-      cprintf("PID = %d", p->pid);
       ticket = p->ticket;
-      release(&ptable.lock);
+      // release(&ptable.lock);
       return p;
     }
   }
-  release(&ptable.lock);
+  // release(&ptable.lock);
   return NULL;
 }
 
 int transferTicketHelper(int pid1, int tickets){
+
+  // acquire(&ptable.lock);
+
   if(tickets < 0){
     // release(&ptable.lock);
     return -1;
   }
   
-  acquire(&ptable.lock);
+  pushcli();
   int p_tix = mycpu()->proc->ticket;
-
-  struct proc * sender = mycpu();
+  popcli();
+  pushcli();
+  struct proc * sender = mycpu()->proc;
+  popcli();
   if(tickets > (sender->ticket -2)){
     // release(&ptable.lock);
     return -2;
@@ -650,5 +655,45 @@ int transferTicketHelper(int pid1, int tickets){
 
 
 
+}
+
+
+
+int
+redist()
+{
+    struct proc *p;
+    struct proc *valid_table[NPROC];
+    int num_tix;
+    int table_ctr = 0;
+
+   
+
+    for (p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
+        if (p->state == UNUSED)
+            continue;
+        if (table_ctr >= NPROC) {
+            cprintf("redist: too many valid processes\n");
+            release(&ptable.lock);
+            return -1;
+        }
+        valid_table[table_ctr] = p;
+        table_ctr++;
+    }
+
+    if (table_ctr == 0) {
+        cprintf("redist: no valid processes found\n");
+        release(&ptable.lock);
+        return -1;
+    }
+
+    num_tix = 100 / table_ctr;
+
+    for (int i = 0; i < table_ctr; i++) {
+        valid_table[i]->ticket = num_tix;
+    }
+
+
+    return 0;
 }
 

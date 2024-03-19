@@ -95,10 +95,10 @@ int sys_transfer_tickets(){
   if(argint(1, &numTix) < 0){
     return -1;
   }
-  transferTicketHelper(recipientPID,numTix);
+  
 
 
-  return 1;
+  return transferTicketHelper(recipientPID,numTix);
 }
 
 int

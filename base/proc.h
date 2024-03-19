@@ -15,7 +15,6 @@ extern int ncpu;
 extern int child_bit;
 extern int sched_policy;
 
-// extern int tix_arr[]
 
 //PAGEBREAK: 17
 // Saved registers for kernel context switches.
@@ -54,6 +53,8 @@ struct proc {
   struct inode *cwd;           // Current directory
   char name[16];               // Process name (debugging)
   int ticket;
+  int stride;
+  int pass;
 };
 
 // Process memory is laid out contiguously, low addresses first:
