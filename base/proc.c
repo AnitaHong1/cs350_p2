@@ -8,7 +8,7 @@
 #include "spinlock.h"
 
 int child_bit;
-
+//dsj
 struct {
   struct spinlock lock;
   struct proc proc[NPROC];
