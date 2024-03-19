@@ -74,6 +74,11 @@ sys_sbrk(void)
   return addr;
 }
 
+int sys_tickets_owned(){
+  return myproc()->ticket;
+
+}
+
 int
 sys_sleep(void)
 {

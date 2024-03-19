@@ -189,6 +189,9 @@ fork(void)
   int i, pid;
   struct proc *np;
   struct proc *curproc = myproc();
+  // currproc->ticket = 99;
+  np->ticket = 99;
+
 
   // Allocate process.
   if((np = allocproc()) == 0){
