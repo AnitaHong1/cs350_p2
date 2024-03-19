@@ -10,6 +10,7 @@
 
 int child_bit;
 int sched_policy;
+int total_tickets = 0;
 
 struct {
   struct spinlock lock;
@@ -220,16 +221,19 @@ fork(void)
 
   acquire(&ptable.lock);
   np->state = RUNNABLE;
-
   release(&ptable.lock);
 
   if(child_bit == 1){
     curproc->state = RUNNING;
     yield();
   }
-  
 
   redist();
+  //np = new process
+  //curproc = caller
+  np->pass = 0;
+  np->stride = (total_tickets * 10) / (np->ticket);
+
   return pid;
 }
 
@@ -604,7 +608,6 @@ get_proc(int pid)
   struct proc *p;
   int ticket = -1;
 
-
   // acquire(&ptable.lock);
   for(p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
     if(p->state == UNUSED)
@@ -619,45 +622,43 @@ get_proc(int pid)
   return NULL;
 }
 
-int transferTicketHelper(int pid1, int tickets){
+int transferTicketHelper(int recipientPID, int transferAmount){
 
   // acquire(&ptable.lock);
-
-  if(tickets < 0){
+  if(transferAmount < 0){
     // release(&ptable.lock);
     return -1;
   }
   
   pushcli();
-  int p_tix = mycpu()->proc->ticket;
+  struct proc * sender = myproc();
+  int p_tix = sender->ticket;
   popcli();
-  pushcli();
-  struct proc * sender = mycpu()->proc;
-  popcli();
-  if(tickets > (sender->ticket -2)){
+
+  if(transferAmount > (sender->ticket - 1)){
     // release(&ptable.lock);
     return -2;
   }
 
-  
-  struct proc * recipient = get_proc(pid1);
+  struct proc * recipient = get_proc(recipientPID);
   if(recipient == NULL){
     // release(&ptable.lock);
     return -3;
   }
-  sender->ticket = sender->ticket - tickets;
+  sender->ticket = sender->ticket - transferAmount;
   
-  recipient->ticket = recipient->ticket + tickets;
+  recipient->ticket = recipient->ticket + transferAmount;
   // release(&ptable.lock);
 
+  /* TODO: potentially changing stride for both */
+  sender->stride = (total_tickets * 10) / (sender -> ticket);
+  recipient -> stride = (total_tickets * 10) / (sender -> ticket);
   return sender->ticket;
 
 
 
 
 }
-
-
 
 int
 redist()
@@ -666,8 +667,6 @@ redist()
     struct proc *valid_table[NPROC];
     int num_tix;
     int table_ctr = 0;
-
-   
 
     for (p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
         if (p->state == UNUSED)
@@ -689,10 +688,11 @@ redist()
 
     num_tix = 100 / table_ctr;
 
+    total_tickets = num_tix * table_ctr;
+
     for (int i = 0; i < table_ctr; i++) {
         valid_table[i]->ticket = num_tix;
     }
-
 
     return 0;
 }

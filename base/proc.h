@@ -14,6 +14,7 @@ extern struct cpu cpus[NCPU];
 extern int ncpu;
 extern int child_bit;
 extern int sched_policy;
+extern int total_tickets;
 
 
 //PAGEBREAK: 17
