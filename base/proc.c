@@ -10,7 +10,6 @@
 int child_bit;
 int sched_policy;
 
-//dsj
 struct {
   struct spinlock lock;
   struct proc proc[NPROC];
@@ -189,10 +188,7 @@ fork(void)
   int i, pid;
   struct proc *np;
   struct proc *curproc = myproc();
-  // currproc->ticket = 99;
-  np->ticket = 99;
-
-
+  
   // Allocate process.
   if((np = allocproc()) == 0){
     return -1;
@@ -230,7 +226,10 @@ fork(void)
     curproc->state = RUNNING;
     yield();
   }
+  curproc->ticket = 99;
+  np->ticket = 99;
 
+  
   return pid;
 }
 
@@ -571,4 +570,27 @@ procdump(void)
     }
     cprintf("\n");
   }
+}
+
+int
+getproctickets(int pid)
+{
+  // cprintf("ooga booga");
+  struct proc *p;
+  int ticket = -1;
+
+
+  acquire(&ptable.lock);
+  for(p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
+    if(p->state == UNUSED)
+      continue;
+    if(p->pid == pid) {
+      cprintf("PID = %d", p->pid);
+      ticket = p->ticket;
+      release(&ptable.lock);
+      return ticket;
+    }
+  }
+  release(&ptable.lock);
+  return -1;
 }

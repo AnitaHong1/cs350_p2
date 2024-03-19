@@ -80,6 +80,8 @@ int sys_tickets_owned(){
   if(argint(0, &pid) < 0){
     return -1;
   }
+  return getproctickets(pid);
+  
   
 
 }
