@@ -674,7 +674,7 @@ redist()
             continue;
         if (table_ctr >= NPROC) {
             cprintf("redist: too many valid processes\n");
-            release(&ptable.lock);
+            //release(&ptable.lock);
             return -1;
         }
         valid_table[table_ctr] = p;
@@ -683,7 +683,7 @@ redist()
 
     if (table_ctr == 0) {
         cprintf("redist: no valid processes found\n");
-        release(&ptable.lock);
+        //release(&ptable.lock);
         return -1;
     }
 
