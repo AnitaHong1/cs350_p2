@@ -49,7 +49,7 @@ sys_fork_winner(void)
 
 int sys_set_sched(void)
 {
-  if(argint(0, &sched_policy) <= -1) 
+  if(argint(0, &sched_policy) < 0) 
     return -1;  
   return 0;
 }
@@ -75,7 +75,12 @@ sys_sbrk(void)
 }
 
 int sys_tickets_owned(){
-  return myproc()->ticket;
+  int pid;
+
+  if(argint(0, &pid) < 0){
+    return -1;
+  }
+  
 
 }
 
