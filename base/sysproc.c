@@ -42,7 +42,7 @@ sys_kill(void)
 int 
 sys_fork_winner(void)
 {
-  if(argint(0, &child_bit) <= -1) 
+  if(argint(0, &child_bit) < 0) 
     return -1;  
   return 0;
 }
@@ -84,6 +84,21 @@ int sys_tickets_owned(){
   
   
 
+}
+
+int sys_transfer_tickets(){
+  int recipientPID;
+  int numTix;
+  if(argint(0, &recipientPID) < 0){
+    return -1;
+  }
+  if(argint(1, &numTix) < 0){
+    return -1;
+  }
+  transferTicketHelper(recipientPID,numTix);
+
+
+  return 1;
 }
 
 int

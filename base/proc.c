@@ -6,6 +6,7 @@
 #include "x86.h"
 #include "proc.h"
 #include "spinlock.h"
+#include <stddef.h>
 
 int child_bit;
 int sched_policy;
@@ -594,3 +595,60 @@ getproctickets(int pid)
   release(&ptable.lock);
   return -1;
 }
+
+struct proc *
+get_proc(int pid)
+{
+  // cprintf("ooga booga");
+  struct proc *p;
+  int ticket = -1;
+
+
+  acquire(&ptable.lock);
+  for(p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
+    if(p->state == UNUSED)
+      continue;
+    if(p->pid == pid) {
+      cprintf("PID = %d", p->pid);
+      ticket = p->ticket;
+      release(&ptable.lock);
+      return p;
+    }
+  }
+  release(&ptable.lock);
+  return NULL;
+}
+
+int transferTicketHelper(int pid1, int tickets){
+  if(tickets < 0){
+    // release(&ptable.lock);
+    return -1;
+  }
+  
+  acquire(&ptable.lock);
+  int p_tix = mycpu()->proc->ticket;
+
+  struct proc * sender = mycpu();
+  if(tickets > (sender->ticket -2)){
+    // release(&ptable.lock);
+    return -2;
+  }
+
+  
+  struct proc * recipient = get_proc(pid1);
+  if(recipient == NULL){
+    // release(&ptable.lock);
+    return -3;
+  }
+  sender->ticket = sender->ticket - tickets;
+  
+  recipient->ticket = recipient->ticket + tickets;
+  // release(&ptable.lock);
+
+  return sender->ticket;
+
+
+
+
+}
+
