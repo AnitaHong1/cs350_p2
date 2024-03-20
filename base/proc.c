@@ -793,10 +793,11 @@ redist()
     for (int i = 0; i < table_ctr; i++) {
       //Should pass be set to 0 for the current ticket if it finished running 
       //Why are we calling p again here??
-        valid_table[i]->ticket = num_tix;
+        p = valid_table[i];
+        p->ticket = num_tix;
         p->stride = (total_tickets * 10) / p->ticket;
         p->pass = 0;
-        
+
     }
 
     return 0;
