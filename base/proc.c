@@ -360,6 +360,7 @@ scheduler(void)
     acquire(&ptable.lock);
     ran = 0;
     if (sched_policy == 0){
+      // cprintf('round robin time :)');
       //RR
       for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
         if(p->state != RUNNABLE)
@@ -380,6 +381,7 @@ scheduler(void)
         c->proc = 0;
       }
     }else{
+      // cprintf("stride schedule~ time :)");
       //TODO: Stride
       //Choose which process to run
       struct proc *highestProc = NULL;
@@ -723,36 +725,36 @@ transferTicketHelper(int recipientPID, int transferAmount)
 
 
 
-//reset ticket and stride for both processes in getproc loop if it's equal to pid
-//then release
-int transferTicketHelper2(int recipientPID, int transferAmount){
+// //reset ticket and stride for both processes in getproc loop if it's equal to pid
+// //then release
+// int transferTicketHelper2(int recipientPID, int transferAmount){
 
-  // acquire(&ptable.lock);
-  if(transferAmount < 0){
-    // release(&ptable.lock);
-    return -1;
-  }
+//   // acquire(&ptable.lock);
+//   if(transferAmount < 0){
+//     // release(&ptable.lock);
+//     return -1;
+//   }
   
-  struct proc * sender = myproc();
-  struct proc * recipient = get_proc(recipientPID);
-  if(recipient == NULL){
-    // release(&ptable.lock);
-    return -3;
-  }
-  if(transferAmount > (sender->ticket - 1)){
-    // release(&ptable.lock);
-    return -2;
-  }
+//   struct proc * sender = myproc();
+//   struct proc * recipient = get_proc(recipientPID);
+//   if(recipient == NULL){
+//     // release(&ptable.lock);
+//     return -3;
+//   }
+//   if(transferAmount > (sender->ticket - 1)){
+//     // release(&ptable.lock);
+//     return -2;
+//   }
 
-  sender->ticket -= transferAmount;
-  recipient->ticket += recipient->ticket + transferAmount;
-  release(&ptable.lock);
+//   sender->ticket -= transferAmount;
+//   recipient->ticket += recipient->ticket + transferAmount;
+//   release(&ptable.lock);
 
-  /* TODO: potentially changing stride for both */
-  sender->stride = (total_tickets * 10) / (sender -> ticket);
-  recipient -> stride = (total_tickets * 10) / (recipient -> ticket);
-  return sender->ticket;
-}
+//   /* TODO: potentially changing stride for both */
+//   sender->stride = (total_tickets * 10) / (sender -> ticket);
+//   recipient -> stride = (total_tickets * 10) / (recipient -> ticket);
+//   return sender->ticket;
+// }
 
 int
 redist()
@@ -783,13 +785,14 @@ redist()
     }
 
     num_tix = 100 / table_ctr;
+    // cprintf("\nACTIVE PROCS: %d\nNUM_TIX: %d\nTOTAL_TIX: %d\n",table_ctr,num_tix,total_tickets);
 
     total_tickets = num_tix * table_ctr;
-    cprintf("TABLE CdhiodhTR %d\n", table_ctr);
+    // cprintf("total tickets = %d", total_tickets);
+    // cprintf("num_tix = %d", num_tix);
     for (int i = 0; i < table_ctr; i++) {
       //Should pass be set to 0 for the current ticket if it finished running 
       //Why are we calling p again here??
-        cprintf("TABLE CTR %d", table_ctr);
         valid_table[i]->ticket = num_tix;
         p->stride = (total_tickets * 10) / p->ticket;
         p->pass = 0;
