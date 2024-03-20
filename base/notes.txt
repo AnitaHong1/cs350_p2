@@ -1,0 +1,27 @@
+Looks like we're not updating pass every redist()
+I'm pretty sure that's relevant
+
+nvm proc.c 419
+
+it looks like pass is being updated by the value of stride in 
+it's own process. Should that be the case??
+
+Reading 2.3 3rd bullet it looks like that shouldn't be the case
+but then looking at the diagram it looks like it should...
+
+Probably should make sure all of the math is right for the eqs
+and build out from there i.e. vvv
+
+- ticket_p = [STRIDE_TOTAL_TICKETS/N]
+- stride_p = [(STRIDE_TOTAL_TICKETS * 10)/ ticket_p]
+- pass_p = pass_p + stride_p
+
+
+Commenting code:
+- Should running processes also qualify to be rescheduled?? -> proc.c 391
+- Make sure it runs through the if statement on 394 on 394 on first run -> proc.c 394
+- Check if 404 needs parenthesis -> proc.c 404
+- What does ran do -> proc.c 413-416
+- What does switchuvm() do -> proc.c 421
+- What does switchkvm() do -> proc.c 425
+- This section looks interestingl -> proc.c 736

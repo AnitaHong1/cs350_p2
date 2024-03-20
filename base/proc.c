@@ -385,15 +385,24 @@ scheduler(void)
       struct proc *highestProc = NULL;
       int lowestPassValue = -1; 
       for(struct proc *p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+        //iterates through proc table
         if (p->state != RUNNABLE){
+          //skips over any process that's not runnable
+          //Should running processes also qualify??
           continue;
         }
         if (highestProc == NULL && lowestPassValue == -1){
+          //first iteration
           highestProc = p;
           lowestPassValue = p->pass;
+          //p->pass should be set to 0 so this is 0
         }else{
           //compare priority
+          //Shouldn't lowest pass value be a negative number since -1 is less than any whole number and i'm pretty sure pass should only
+          //be a whole number p->pass will never be lower than lowestPassValue??
+          //it takes care of that in the first loop nvm
           if (p->pass < lowestPassValue || p->pass == lowestPassValue && p->pid < highestProc->pid){
+            //Should there be parenthesis here? ^^^
             highestProc = p;
             lowestPassValue = p->pass;
           }
@@ -725,6 +734,9 @@ redist()
     total_tickets = num_tix * table_ctr;
 
     for (int i = 0; i < table_ctr; i++) {
+      //This calculates stride and pass again but I'm pretty sure that's done in scheduler.
+      //Should pass be set to 0 for the current ticket if it finished running 
+      //Why are we calling p again here??
         valid_table[i]->ticket = num_tix;
         p->stride = (total_tickets * 10) / p->ticket;
         p->pass = 0;
