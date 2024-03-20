@@ -703,12 +703,12 @@ transferTicketHelper(int recipientPID, int transferAmount)
 
   acquire(&ptable.lock);
   for(p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
-    if(p->state == UNUSED)
+    if(p->state == UNUSED) //I honestly forgot if this was a problem or not
       continue;
     if(p->pid == recipientPID) {
       ticket = p->ticket;
       sender->ticket -= transferAmount;
-      p->ticket += p->ticket + transferAmount;
+      p->ticket += transferAmount;
 
       sender->stride = (total_tickets * 10) / (sender -> ticket);
       p -> stride = (total_tickets * 10) / (p -> ticket);
