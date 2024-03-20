@@ -10,7 +10,7 @@
 
 int child_bit;
 int sched_policy;
-int total_tickets = 0;
+int total_tickets = 100;
 
 struct {
   struct spinlock lock;
@@ -158,6 +158,8 @@ userinit(void)
   p->state = RUNNABLE;
 
   release(&ptable.lock);
+  
+  redist();
 }
 
 // Grow current process's memory by n bytes.
@@ -671,28 +673,24 @@ int transferTicketHelper(int recipientPID, int transferAmount){
     return -1;
   }
   
-  pushcli();
   struct proc * sender = myproc();
-  popcli();
-
-  if(transferAmount > (sender->ticket - 1)){
-    // release(&ptable.lock);
-    return -2;
-  }
-
   struct proc * recipient = get_proc(recipientPID);
   if(recipient == NULL){
     // release(&ptable.lock);
     return -3;
   }
-  sender->ticket = sender->ticket - transferAmount;
-  
-  recipient->ticket = recipient->ticket + transferAmount;
+  if(transferAmount > (sender->ticket - 1)){
+    // release(&ptable.lock);
+    return -2;
+  }
+
+  sender->ticket -= transferAmount;
+  recipient->ticket += recipient->ticket + transferAmount;
   // release(&ptable.lock);
 
   /* TODO: potentially changing stride for both */
   sender->stride = (total_tickets * 10) / (sender -> ticket);
-  recipient -> stride = (total_tickets * 10) / (sender -> ticket);
+  recipient -> stride = (total_tickets * 10) / (recipient -> ticket);
   return sender->ticket;
 }
 
@@ -728,6 +726,8 @@ redist()
 
     for (int i = 0; i < table_ctr; i++) {
         valid_table[i]->ticket = num_tix;
+        p->stride = (total_tickets * 10) / p->ticket;
+        p->pass = 0;
     }
 
     return 0;
