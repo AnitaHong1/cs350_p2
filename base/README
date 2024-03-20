@@ -1,1 +1,22 @@
 README
+
+How the work was divided:
+
+Questions:
+Anita Hong and Karson Lin worked on the QA portion and the README
+
+Code:
+(1) Implement the functionality that allows user program to set the type of scheduling policy.
+-Karson Lin
+
+(2) Implement the functionality that allows a user process to get the number of its tickets
+-Anita Hong
+
+(3) Implement the functionality that allows a user process to transfer its own tickets to another
+process.
+-Andrew
+
+(4) Implement the stride scheduling policy, remove the stub functions defined at the beginning
+of schdtest.c (by simply removing the “STUB FUNCS” macro definition), and test your
+implementation.
+-Jiaming Chen
