@@ -24,4 +24,10 @@ Commenting code:
 - What does ran do -> proc.c 413-416
 - What does switchuvm() do -> proc.c 421
 - What does switchkvm() do -> proc.c 425
-- This section looks interestingl -> proc.c 736
+- This section looks interesting -> proc.c 736
+- Shouln't it be !RUNNABLE -> proc.c 715 -
+
+
+It's just not distributing tickets correctly - I think everytime a process gets called sched is ran. add debugs to sched
+
+for RR it's just RUNNABLE

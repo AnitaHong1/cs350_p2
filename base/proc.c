@@ -226,15 +226,15 @@ fork(void)
   release(&ptable.lock);
 
   if(child_bit == 1){
-    curproc->state = RUNNING;
+    // p->state = RUNNING;
     yield();
   }
 
   redist();
   //np = new process
   //curproc = caller
-  np->pass = 0;
-  np->stride = (total_tickets * 10) / (np->ticket);
+  // np->pass = 0;
+  // np->stride = (total_tickets * 10) / (np->ticket);
 
   return pid;
 }
@@ -401,8 +401,10 @@ scheduler(void)
           //Shouldn't lowest pass value be a negative number since -1 is less than any whole number and i'm pretty sure pass should only
           //be a whole number p->pass will never be lower than lowestPassValue??
           //it takes care of that in the first loop nvm
-          if (p->pass < lowestPassValue || p->pass == lowestPassValue && p->pid < highestProc->pid){
+          if (p->pass < lowestPassValue){// || ((p->pass == lowestPassValue) && (p->pid < highestProc->pid))){
             //Should there be parenthesis here? ^^^
+            //doubler check
+            
             highestProc = p;
             lowestPassValue = p->pass;
           }
@@ -417,6 +419,7 @@ scheduler(void)
         // Switch to chosen process.  It is the process's job
         // to release ptable.lock and then reacquire it
         // before jumping back to us.
+        p->pass += p->stride;
         c->proc = p;
         switchuvm(p);
         p->state = RUNNING;
@@ -425,7 +428,7 @@ scheduler(void)
         switchkvm();
 
         // Process is done running for now. --> change the pass value 
-        p->pass += p->stride;
+        
         // It should have changed its p->state before coming back.
         c->proc = 0;
       }
@@ -450,6 +453,7 @@ sched(void)
 {
   int intena;
   struct proc *p = myproc();
+  // cprintf("Process %d -> %d tickets | %d pass | %d stride", p->pid,p->ticket,p->pass,p->stride);
 
   if(!holding(&ptable.lock))
     panic("sched ptable.lock");
@@ -462,6 +466,7 @@ sched(void)
   intena = mycpu()->intena;
   swtch(&p->context, mycpu()->scheduler);
   mycpu()->intena = intena;
+ 
 }
 
 // Give up the CPU for one scheduling round.
@@ -660,21 +665,67 @@ get_proc(int pid)
   struct proc *p;
   int ticket = -1;
 
-  // acquire(&ptable.lock);
+  acquire(&ptable.lock);
   for(p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
     if(p->state == UNUSED)
       continue;
     if(p->pid == pid) {
       ticket = p->ticket;
       // release(&ptable.lock);
+      //put ticket transfer stuff here so ptable isn't an issue
+      //no return either
       return p;
     }
   }
-  // release(&ptable.lock);
+  release(&ptable.lock);
   return NULL;
 }
 
-int transferTicketHelper(int recipientPID, int transferAmount){
+
+int
+transferTicketHelper(int recipientPID, int transferAmount)
+{
+  // cprintf("ooga booga");
+  struct proc *p;
+  int ticket = -1;
+  struct proc * sender = myproc();
+  //error handling
+  if(transferAmount < 0){
+    // release(&ptable.lock);
+    return -1;
+  }
+  if(transferAmount > (sender->ticket - 1)){
+    // release(&ptable.lock);
+    return -2;
+  }
+
+  acquire(&ptable.lock);
+  for(p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
+    if(p->state == UNUSED)
+      continue;
+    if(p->pid == recipientPID) {
+      ticket = p->ticket;
+      sender->ticket -= transferAmount;
+      p->ticket += p->ticket + transferAmount;
+
+      sender->stride = (total_tickets * 10) / (sender -> ticket);
+      p -> stride = (total_tickets * 10) / (p -> ticket);
+
+      release(&ptable.lock);
+      //put ticket transfer stuff here so ptable isn't an issue
+      //no return either
+      return transferAmount;
+    }
+  }
+  release(&ptable.lock);
+  return -3;
+}
+
+
+
+//reset ticket and stride for both processes in getproc loop if it's equal to pid
+//then release
+int transferTicketHelper2(int recipientPID, int transferAmount){
 
   // acquire(&ptable.lock);
   if(transferAmount < 0){
@@ -695,7 +746,7 @@ int transferTicketHelper(int recipientPID, int transferAmount){
 
   sender->ticket -= transferAmount;
   recipient->ticket += recipient->ticket + transferAmount;
-  // release(&ptable.lock);
+  release(&ptable.lock);
 
   /* TODO: potentially changing stride for both */
   sender->stride = (total_tickets * 10) / (sender -> ticket);
@@ -712,7 +763,9 @@ redist()
     int table_ctr = 0;
 
     for (p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
-        if (p->state == UNUSED)
+        if (p->state != RUNNING && p->state != RUNNABLE)
+        //Running And Runnable
+        //Shouldn't this be !Runnable just like in scheduler
             continue;
         if (table_ctr >= NPROC) {
             cprintf("redist: too many valid processes\n");
@@ -732,14 +785,15 @@ redist()
     num_tix = 100 / table_ctr;
 
     total_tickets = num_tix * table_ctr;
-
+    cprintf("TABLE CdhiodhTR %d\n", table_ctr);
     for (int i = 0; i < table_ctr; i++) {
-      //This calculates stride and pass again but I'm pretty sure that's done in scheduler.
       //Should pass be set to 0 for the current ticket if it finished running 
       //Why are we calling p again here??
+        cprintf("TABLE CTR %d", table_ctr);
         valid_table[i]->ticket = num_tix;
         p->stride = (total_tickets * 10) / p->ticket;
         p->pass = 0;
+        
     }
 
     return 0;
